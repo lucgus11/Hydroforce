@@ -161,4 +161,4 @@ hydration-enforcer/
 
 ## 📄 Licence
 
-MIT — Fais-en ce que tu veux. Mais bois de l'eau d'abord.
+CC 4.0
