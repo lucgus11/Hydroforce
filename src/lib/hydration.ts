@@ -1,7 +1,16 @@
-// ── Constants ──────────────────────────────────────────────────────────────
-export const DAILY_GOAL = 8; // verres
+// ── Constants (fallback values) ────────────────────────────────────────────
+export const DEFAULT_DAILY_GOAL = 8;
+export const DEFAULT_GLASS_ML   = 250;
 export const ALERT_THRESHOLD_MS = 60 * 60 * 1000; // 60 minutes
-export const GLASS_ML = 250;
+
+// Preset glass sizes offered in settings
+export const GLASS_PRESETS: { label: string; ml: number }[] = [
+  { label: 'Petit verre',     ml: 150 },
+  { label: 'Standard',        ml: 250 },
+  { label: 'Grand verre',     ml: 350 },
+  { label: 'Bouteille',       ml: 500 },
+  { label: 'Personnalisé',    ml: 0   }, // 0 = custom free input
+];
 
 // ── Harassment messages by tier ────────────────────────────────────────────
 export interface HarassMessage {
@@ -42,9 +51,12 @@ export const HARASS_MESSAGES: HarassMessage[] = [
 export interface HydrationState {
   glassesConsumed: number;
   lastDrinkTime: number;
-  dailyDate: string; // YYYY-MM-DD
+  dailyDate: string;
   totalMlToday: number;
   notifPermission: NotificationPermission | 'default';
+  // User-configurable settings (kept across day resets)
+  dailyGoal: number;
+  glassMl: number;
 }
 
 const LS_KEY = 'hydroforce_state';
@@ -54,20 +66,23 @@ function getTodayDate(): string {
 }
 
 export function loadState(): HydrationState {
-  if (typeof window === 'undefined') {
-    return getDefaultState();
-  }
+  if (typeof window === 'undefined') return getDefaultState();
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return getDefaultState();
     const parsed: HydrationState = JSON.parse(raw);
-    // Reset if new day
+    // Keep settings but reset daily counters when day changes
     if (parsed.dailyDate !== getTodayDate()) {
-      const fresh = getDefaultState();
+      const fresh = getDefaultState(parsed.dailyGoal, parsed.glassMl);
       saveState(fresh);
       return fresh;
     }
-    return parsed;
+    // Back-fill settings for older saves that lack these fields
+    return {
+      ...parsed,
+      dailyGoal: parsed.dailyGoal ?? DEFAULT_DAILY_GOAL,
+      glassMl:   parsed.glassMl   ?? DEFAULT_GLASS_ML,
+    };
   } catch {
     return getDefaultState();
   }
@@ -80,13 +95,15 @@ export function saveState(state: HydrationState): void {
   } catch {}
 }
 
-function getDefaultState(): HydrationState {
+function getDefaultState(goal = DEFAULT_DAILY_GOAL, ml = DEFAULT_GLASS_ML): HydrationState {
   return {
     glassesConsumed: 0,
     lastDrinkTime: Date.now(),
     dailyDate: getTodayDate(),
     totalMlToday: 0,
     notifPermission: 'default',
+    dailyGoal: goal,
+    glassMl: ml,
   };
 }
 
@@ -97,8 +114,8 @@ export function getMinutesSinceLastDrink(lastDrinkTime: number): number {
 
 export function getHarassmentTier(minutesSince: number): 1 | 2 | 3 | 4 {
   if (minutesSince >= 120) return 4;
-  if (minutesSince >= 90) return 3;
-  if (minutesSince >= 60) return 2;
+  if (minutesSince >= 90)  return 3;
+  if (minutesSince >= 60)  return 2;
   return 1;
 }
 
