@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Bebas Neue', monospace;
+  --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+  --color-acid: #C8FF00;
+  --color-brutal: #FF2D00;
+  --color-void: #0A0A0A;
+  --color-electric: #00F5FF;
+  --color-warning: #FFE600;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  background-color: var(--color-void);
+  color: var(--color-acid);
+  font-family: var(--font-mono);
+}
+
+/* Scanline overlay effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-void); }
+::-webkit-scrollbar-thumb { background: var(--color-acid); }
+
+/* Alert mode body overrides */
+body.alert-mode {
+  animation: bodyFlash 0.4s ease-in-out infinite;
+}
+
+@keyframes bodyFlash {
+  0%, 100% { background-color: #1a0000; }
+  50% { background-color: #2d0000; }
+}
+
+/* Blink animation */
+@keyframes brutal-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.blink { animation: brutal-blink 0.5s step-end infinite; }
+
+/* Shake animation */
+@keyframes brutal-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(-6px, 2px) rotate(-0.5deg); }
+  30% { transform: translate(6px, -2px) rotate(0.5deg); }
+  45% { transform: translate(-4px, 4px) rotate(-0.3deg); }
+  60% { transform: translate(4px, -4px) rotate(0.3deg); }
+  75% { transform: translate(-2px, 2px) rotate(-0.2deg); }
+  90% { transform: translate(2px, 0px) rotate(0deg); }
+}
+
+.shake { animation: brutal-shake 0.7s ease-in-out infinite; }
+
+/* Glitch effect */
+@keyframes glitch-1 {
+  0%, 100% { clip-path: inset(0 0 95% 0); transform: translateX(-4px); }
+  33% { clip-path: inset(40% 0 50% 0); transform: translateX(4px); }
+  66% { clip-path: inset(80% 0 10% 0); transform: translateX(0px); }
+}
+
+@keyframes glitch-2 {
+  0%, 100% { clip-path: inset(60% 0 30% 0); transform: translateX(4px); }
+  33% { clip-path: inset(20% 0 70% 0); transform: translateX(-4px); }
+  66% { clip-path: inset(90% 0 5% 0); transform: translateX(0px); }
+}
+
+.glitch-text {
+  position: relative;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch-text::before {
+  color: #FF2D00;
+  animation: glitch-1 2s infinite linear;
+}
+
+.glitch-text::after {
+  color: #00F5FF;
+  animation: glitch-2 2s infinite linear;
+}
+
+/* Flying button */
+.flying-btn {
+  position: fixed !important;
+  transition: top 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), 
+              left 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 1000;
+}
+
+/* Progress bar fill */
+@keyframes fill-progress {
+  from { width: 0%; }
+  to { width: var(--target-width); }
+}
